@@ -23,7 +23,9 @@ import androidx.core.content.ContextCompat;
 import java.util.List;
 import java.util.UUID;
 import android.content.Intent;
+import android.widget.Button;
 import android.widget.Toast;
+import android.widget.TextView;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -32,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int CODIGO_PETICION_PERMISOS = 11223344;
     private BluetoothLeScanner elEscanner;
     private ScanCallback callbackDelEscaneo = null;
+    private Intent elIntentDelServicio = null;
+    private TextView elTexto;
+    private Button elBotonEnviar;
 
     // _______________________________________________________________
     // Diseño: buscarTodosLosDispositivosBTLE()
@@ -62,8 +67,19 @@ public class MainActivity extends AppCompatActivity {
 
             }
         };
-
         Log.d(ETIQUETA_LOG, " buscarTodosLosDispositivosBTL(): empezamos a escanear ");
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+
+            return;
+        }
 
         this.elEscanner.startScan(this.callbackDelEscaneo);
 
@@ -155,6 +171,18 @@ public class MainActivity extends AppCompatActivity {
         //Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): empezamos a escanear buscando: " + dispositivoBuscado
         //      + " -> " + Utilidades.stringToUUID( dispositivoBuscado ) );
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+
+            return;
+        }
+
         this.elEscanner.startScan(this.callbackDelEscaneo);
     }
 
@@ -168,7 +196,17 @@ public class MainActivity extends AppCompatActivity {
         if (this.callbackDelEscaneo == null) {
             return;
         }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
 
+            return;
+        }
         this.elEscanner.stopScan(this.callbackDelEscaneo);
         this.callbackDelEscaneo = null;
     }
@@ -178,6 +216,30 @@ public class MainActivity extends AppCompatActivity {
     // Descripción:
     // _______________________________________________________________
     public void botonBuscarDispositivosBTLEPulsado(View v) {
+
+        Log.d(ETIQUETA_LOG, " boton arrancar servicio Pulsado" );
+
+        if ( this.elIntentDelServicio != null ) {
+            // ya estaba arrancado
+            return;
+        }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+
+            return;
+        }
+
+        Log.d(ETIQUETA_LOG, " MainActivity.constructor : voy a arrancar el servicio");
+        this.elIntentDelServicio = new Intent(this, ServicioEscuharBeacons.class);
+        this.elIntentDelServicio.putExtra("tiempoDeEspera", (long) 5000);
+        startService( this.elIntentDelServicio );
 
         Log.d(ETIQUETA_LOG, " boton buscar dispositivos BTLE Pulsado");
         this.buscarTodosLosDispositivosBTLE();
@@ -191,6 +253,31 @@ public class MainActivity extends AppCompatActivity {
         Log.d(ETIQUETA_LOG, " boton nuestro dispositivo BTLE Pulsado");
         //this.buscarEsteDispositivoBTLE( Utilidades.stringToUUID( "EPSG-GTI-PROY-3A" ) );
 
+        Log.d(ETIQUETA_LOG, " boton arrancar servicio Pulsado" );
+
+        if ( this.elIntentDelServicio != null ) {
+            // ya estaba arrancado
+            return;
+        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+
+            return;
+        }
+
+        Log.d(ETIQUETA_LOG, " MainActivity.constructor : voy a arrancar el servicio");
+
+        this.elIntentDelServicio = new Intent(this, ServicioEscuharBeacons.class);
+
+        this.elIntentDelServicio.putExtra("tiempoDeEspera", (long) 5000);
+        startService( this.elIntentDelServicio );
+
         //this.buscarEsteDispositivoBTLE( "EPSG-GTI-PROY-3A" );
         this.buscarEsteDispositivoBTLE("fistro");
 
@@ -201,7 +288,29 @@ public class MainActivity extends AppCompatActivity {
     // Descripción:
     // _______________________________________________________________
     public void botonDetenerBusquedaDispositivosBTLEPulsado(View v) {
+
+        if ( this.elIntentDelServicio == null ) {
+            // no estaba arrancado
+            return;
+        }
+
+        stopService( this.elIntentDelServicio );
+        this.elIntentDelServicio = null;
+        Log.d(ETIQUETA_LOG, " boton detener servicio Pulsado" );
         Log.d(ETIQUETA_LOG, " boton detener busqueda dispositivos BTLE Pulsado");
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+
+            return;
+        }
+
         this.detenerBusquedaDispositivosBTLE();
     }
 
@@ -238,11 +347,16 @@ public class MainActivity extends AppCompatActivity {
                 ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                        || ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+                        || ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED
+                        || ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED
         )
         {
             ActivityCompat.requestPermissions(
                     MainActivity.this,
-                    new String[]{Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN, Manifest.permission.ACCESS_FINE_LOCATION},
+                    new String[]{Manifest.permission.BLUETOOTH,Manifest.permission.BLUETOOTH_ADMIN,Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_SCAN,Manifest.permission.INTERNET},
                     CODIGO_PETICION_PERMISOS);
         }
         else {
@@ -256,6 +370,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        this.elBotonEnviar =(Button) findViewById(R.id.elBotonEnviar);
+        this.elTexto = (TextView) findViewById(R.id.elTexto);
+
+        ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+
+            return;
+        }else {
+
+            Toast.makeText(getApplicationContext(),"GPS Activado",Toast.LENGTH_SHORT).show();
+        }
 
         Log.d(ETIQUETA_LOG, " onCreate(): empieza ");
 
@@ -283,14 +411,33 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(ETIQUETA_LOG, " onRequestPermissionResult(): permisos concedidos  !!!!");
                     // Permission is granted. Continue the action or workflow
                     // in your app.
+
                 }  else {
 
                     Log.d(ETIQUETA_LOG, " onRequestPermissionResult(): Socorro: permisos NO concedidos  !!!!");
+
 
                 }
                 return;
         }
         // Other 'case' lines to check for other
         // permissions this app might request.
+    }
+
+    public void boton_enviar_pulsado (View quien) {
+        Log.d("clienterestandroid", "boton_enviar_pulsado");
+
+        // ojo: creo que hay que crear uno nuevo cada vez
+        PeticionarioREST elPeticionario = new PeticionarioREST();
+
+        elPeticionario.hacerPeticionREST("POST", "http://192.168.1.106:80/insertarmedicion.php",
+                "{\"id\": \"3\", \"temperatura\": \"520\", \"co2\": \"1314\"}",
+                new PeticionarioREST.RespuestaREST () {
+                    @Override
+                    public void callback(int codigo, String cuerpo) {
+                        elTexto.setText ("codigo respuesta: " + codigo + " <-> \n" + cuerpo);
+
+                    }
+                });
     }
 }
