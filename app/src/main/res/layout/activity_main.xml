@@ -32,14 +32,30 @@
     <TextView
         android:id="@+id/elTexto"
         android:layout_width="match_parent"
-        android:layout_height="39dp"
-        android:text="TextView" />
+        android:layout_height="33dp"
+        android:text="Minor:" />
+
+    <EditText
+        android:id="@+id/temperaturaInput"
+        android:layout_width="match_parent"
+        android:layout_height="74dp"
+        android:ems="10"
+        android:hint="Temperatura"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/co2Input"
+        android:layout_width="match_parent"
+        android:layout_height="74dp"
+        android:ems="10"
+        android:hint="co2"
+        android:inputType="text" />
 
     <Button
         android:id="@+id/elBotonEnviar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="boton_enviar_pulsado"
-        android:text="Enviar Mediciones" />
+        android:onClick="boton_enviar_pulsado_client"
+        android:text="Guardar Mediciones" />
 
 </android.widget.LinearLayout>

@@ -28,7 +28,6 @@ public class PeticionarioREST extends AsyncTask<Void, Void, Boolean> {
     private String urlDestino;
     private String elCuerpo = null;
     private RespuestaREST laRespuesta;
-
     private int codigoRespuesta;
     private String cuerpoRespuesta = "";
 

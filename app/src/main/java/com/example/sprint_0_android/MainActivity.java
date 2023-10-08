@@ -24,8 +24,19 @@ import java.util.List;
 import java.util.UUID;
 import android.content.Intent;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 import android.widget.TextView;
+
+
+import com.androidnetworking.AndroidNetworking;
+import com.androidnetworking.common.Priority;
+import com.androidnetworking.error.ANError;
+import com.androidnetworking.interfaces.JSONArrayRequestListener;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -36,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
     private ScanCallback callbackDelEscaneo = null;
     private Intent elIntentDelServicio = null;
     private TextView elTexto;
+
+    private EditText temperaturaInput;
+    private EditText co2Input;
     private Button elBotonEnviar;
 
     // _______________________________________________________________
@@ -130,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
                 + Utilidades.bytesToInt(tib.getMajor()) + " ) ");
         Log.d(ETIQUETA_LOG, " minor  = " + Utilidades.bytesToHexString(tib.getMinor()) + "( "
                 + Utilidades.bytesToInt(tib.getMinor()) + " ) ");
+        elTexto.setText ("Minor: "  + Utilidades.bytesToInt(tib.getMinor()) );
         Log.d(ETIQUETA_LOG, " txPower  = " + Integer.toHexString(tib.getTxPower()) + " ( " + tib.getTxPower() + " )");
         Log.d(ETIQUETA_LOG, " ****************************************************");
 
@@ -373,6 +388,9 @@ public class MainActivity extends AppCompatActivity {
         this.elBotonEnviar =(Button) findViewById(R.id.elBotonEnviar);
         this.elTexto = (TextView) findViewById(R.id.elTexto);
 
+        this.temperaturaInput = (EditText) findViewById(R.id.temperaturaInput);
+        this.co2Input = (EditText) findViewById(R.id.co2Input);
+
         ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
@@ -427,16 +445,66 @@ public class MainActivity extends AppCompatActivity {
     public void boton_enviar_pulsado (View quien) {
         Log.d("clienterestandroid", "boton_enviar_pulsado");
 
-        // ojo: creo que hay que crear uno nuevo cada vez
-        PeticionarioREST elPeticionario = new PeticionarioREST();
+        String urlDestino = "http://192.168.1.106:80/insertarmedicion.php";
 
-        elPeticionario.hacerPeticionREST("POST", "http://192.168.1.106:80/insertarmedicion.php",
-                "{\"id\": \"3\", \"temperatura\": \"520\", \"co2\": \"1314\"}",
-                new PeticionarioREST.RespuestaREST () {
+        // Crear un objeto JSONObject con los datos a enviar
+        JSONObject postData = new JSONObject();
+        try {
+            postData.put("id", "");
+            postData.put("temperatura", "111");
+            postData.put("co2", "999");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        AndroidNetworking.post(urlDestino)
+                .addHeaders("Content-Type", "application/json; charset=utf-8")
+                .addJSONObjectBody(postData)
+                .setTag("test")
+                .setPriority(Priority.MEDIUM)
+                .build()
+                .getAsJSONArray(new JSONArrayRequestListener() {
                     @Override
-                    public void callback(int codigo, String cuerpo) {
-                        elTexto.setText ("codigo respuesta: " + codigo + " <-> \n" + cuerpo);
+                    public void onResponse(JSONArray response) {
+                        // Manejar la respuesta del servidor
+                    }
 
+                    @Override
+                    public void onError(ANError error) {
+                        // Manejar errores
+                    }
+                });
+    }
+    public void boton_enviar_pulsado_client (View quien) {
+        Log.d("clienterestandroid", "boton_enviar_pulsado_client");
+
+        String urlDestino = "http://192.168.1.106:80/insertarmedicion.php";
+
+        // Crear un objeto JSONObject con los datos a enviar
+        JSONObject postData = new JSONObject();
+        try {
+            postData.put("id", "");
+            postData.put("temperatura", temperaturaInput.getText().toString());
+            postData.put("co2", co2Input.getText().toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        AndroidNetworking.post(urlDestino)
+                .addHeaders("Content-Type", "application/json; charset=utf-8")
+                .addJSONObjectBody(postData)
+                .setTag("test")
+                .setPriority(Priority.MEDIUM)
+                .build()
+                .getAsJSONArray(new JSONArrayRequestListener() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        // Manejar la respuesta del servidor
+                    }
+
+                    @Override
+                    public void onError(ANError error) {
+                        // Manejar errores
                     }
                 });
     }
