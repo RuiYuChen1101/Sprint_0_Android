@@ -23,14 +23,19 @@
 
     <Button
         android:id="@+id/botonBuscarNuestroDispositivoBTLE"
-        android:text="Buscar nuestro dispositivo  BTLE"
-        android:onClick="botonBuscarNuestroDispositivoBTLEPulsado"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        />
+        android:onClick="botonBuscarNuestroDispositivoBTLEPulsado"
+        android:text="Buscar nuestro dispositivo  BTLE" />
 
     <TextView
-        android:id="@+id/elTexto"
+        android:id="@+id/elTextoMajor"
+        android:layout_width="match_parent"
+        android:layout_height="43dp"
+        android:text="Major:" />
+
+    <TextView
+        android:id="@+id/elTextoMinor"
         android:layout_width="match_parent"
         android:layout_height="33dp"
         android:text="Minor:" />

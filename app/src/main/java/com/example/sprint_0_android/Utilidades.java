@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 // -----------------------------------------------------------------------------------
-// @author: Jordi Bataller i Mascarell
+
 // -----------------------------------------------------------------------------------
 public class Utilidades {
 

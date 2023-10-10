@@ -3,6 +3,7 @@ package com.example.sprint_0_android;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.bluetooth.le.ScanSettings;
 import android.os.Bundle;
 
 import android.Manifest;
@@ -13,15 +14,15 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.View;
-import androidx.appcompat.app.AppCompatActivity;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+
 import android.content.Intent;
 import android.widget.Button;
 import android.widget.EditText;
@@ -46,8 +47,8 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothLeScanner elEscanner;
     private ScanCallback callbackDelEscaneo = null;
     private Intent elIntentDelServicio = null;
-    private TextView elTexto;
-
+    private TextView elTextoMinor;
+    private TextView elTextoMajor;
     private EditText temperaturaInput;
     private EditText co2Input;
     private Button elBotonEnviar;
@@ -60,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private void buscarTodosLosDispositivosBTLE() {
         Log.d(ETIQUETA_LOG, " buscarTodosLosDispositivosBTL(): empieza ");
         Log.d(ETIQUETA_LOG, " buscarTodosLosDispositivosBTL(): instalamos scan callback ");
+
         this.callbackDelEscaneo = new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult resultado) {
@@ -83,18 +85,6 @@ public class MainActivity extends AppCompatActivity {
         };
         Log.d(ETIQUETA_LOG, " buscarTodosLosDispositivosBTL(): empezamos a escanear ");
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
-            return;
-        }
-
         this.elEscanner.startScan(this.callbackDelEscaneo);
 
     }
@@ -114,13 +104,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d(ETIQUETA_LOG, " ****************************************************");
         Log.d(ETIQUETA_LOG, " nombre = " + bluetoothDevice.getName());
         Log.d(ETIQUETA_LOG, " toString = " + bluetoothDevice.toString());
-
-        /*
-        ParcelUuid[] puuids = bluetoothDevice.getUuids();
-        if ( puuids.length >= 1 ) {
-            //Log.d(ETIQUETA_LOG, " uuid = " + puuids[0].getUuid());
-           // Log.d(ETIQUETA_LOG, " uuid = " + puuids[0].toString());
-        }*/
 
         Log.d(ETIQUETA_LOG, " dirección = " + bluetoothDevice.getAddress());
         Log.d(ETIQUETA_LOG, " rssi = " + rssi);
@@ -142,9 +125,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d(ETIQUETA_LOG, " uuid  = " + Utilidades.bytesToString(tib.getUUID()));
         Log.d(ETIQUETA_LOG, " major  = " + Utilidades.bytesToHexString(tib.getMajor()) + "( "
                 + Utilidades.bytesToInt(tib.getMajor()) + " ) ");
+        elTextoMajor.setText ("Major: "  + Utilidades.bytesToInt(tib.getMajor()) );
         Log.d(ETIQUETA_LOG, " minor  = " + Utilidades.bytesToHexString(tib.getMinor()) + "( "
                 + Utilidades.bytesToInt(tib.getMinor()) + " ) ");
-        elTexto.setText ("Minor: "  + Utilidades.bytesToInt(tib.getMinor()) );
+        elTextoMinor.setText ("Minor: "  + Utilidades.bytesToInt(tib.getMinor()) );
         Log.d(ETIQUETA_LOG, " txPower  = " + Integer.toHexString(tib.getTxPower()) + " ( " + tib.getTxPower() + " )");
         Log.d(ETIQUETA_LOG, " ****************************************************");
 
@@ -158,6 +142,8 @@ public class MainActivity extends AppCompatActivity {
     private void buscarEsteDispositivoBTLE(final String dispositivoBuscado) {
         Log.d(ETIQUETA_LOG, " buscarEsteDispositivoBTLE(): empieza ");
         Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): instalamos scan callback ");
+
+
         // super.onScanResult(ScanSettings.SCAN_MODE_LOW_LATENCY, result); para ahorro de energía
         this.callbackDelEscaneo = new ScanCallback() {
             @Override
@@ -165,7 +151,8 @@ public class MainActivity extends AppCompatActivity {
                 super.onScanResult(callbackType, resultado);
                 Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): onScanResult() ");
 
-                mostrarInformacionDispositivoBTLE(resultado);
+                //mostrarInformacionDispositivoBTLE(resultado);
+                Log.d(ETIQUETA_LOG, "Device found: " + resultado.getDevice().getName());
             }
             @Override
             public void onBatchScanResults(List<ScanResult> results) {
@@ -180,25 +167,26 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        ScanFilter sf = new ScanFilter.Builder().setDeviceName(dispositivoBuscado).build();
-
         Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): empezamos a escanear buscando: " + dispositivoBuscado);
-        //Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): empezamos a escanear buscando: " + dispositivoBuscado
-        //      + " -> " + Utilidades.stringToUUID( dispositivoBuscado ) );
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+        ScanFilter scanFilter = new ScanFilter.Builder()
+                .setDeviceName(dispositivoBuscado)
+                .build();
 
-            return;
-        }
+        // Create a list of ScanFilters (you can add multiple filters if needed)
+        List<ScanFilter> filters = new ArrayList<>();
+        filters.add(scanFilter);
+        Log.d(ETIQUETA_LOG, filters.toString());
 
-        this.elEscanner.startScan(this.callbackDelEscaneo);
+        // Specify the scan settings (e.g., low latency)
+        ScanSettings scanSettings = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .build();
+
+        Log.d(ETIQUETA_LOG, "buscarEsteDispositivoBTLE: Antes ed startscan with filter");
+        // Start scanning with the specified filters and settings
+        this.elEscanner.startScan(filters, scanSettings, this.callbackDelEscaneo);
+        Log.d(ETIQUETA_LOG, "buscarEsteDispositivoBTLE: Despues ed startscan with filter");
     }
 
     // _______________________________________________________________
@@ -210,22 +198,15 @@ public class MainActivity extends AppCompatActivity {
 
         if (this.callbackDelEscaneo == null) {
             return;
-        }
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+        }else {
 
-            return;
+            this.elEscanner.stopScan(this.callbackDelEscaneo);
+            this.callbackDelEscaneo = null;
         }
-        this.elEscanner.stopScan(this.callbackDelEscaneo);
-        this.callbackDelEscaneo = null;
+
     }
 
+    // --------------------------BOTON--------------------------------
     // _______________________________________________________________
     // Diseño: botonBuscarDispositivosBTLEPulsado()
     // Descripción:
@@ -287,9 +268,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Log.d(ETIQUETA_LOG, " MainActivity.constructor : voy a arrancar el servicio");
-
         this.elIntentDelServicio = new Intent(this, ServicioEscuharBeacons.class);
-
         this.elIntentDelServicio.putExtra("tiempoDeEspera", (long) 5000);
         startService( this.elIntentDelServicio );
 
@@ -310,8 +289,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         stopService( this.elIntentDelServicio );
-        this.elIntentDelServicio = null;
         Log.d(ETIQUETA_LOG, " boton detener servicio Pulsado" );
+
+        this.elIntentDelServicio = null;
         Log.d(ETIQUETA_LOG, " boton detener busqueda dispositivos BTLE Pulsado");
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
@@ -336,6 +316,9 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("MissingPermission")
     private void inicializarBlueTooth() {
         Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): obtenemos adaptador BT ");
+
+        //BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        //BluetoothAdapter bta = bluetoothManager.getAdapter();
 
         BluetoothAdapter bta = BluetoothAdapter.getDefaultAdapter();
 
@@ -386,7 +369,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         this.elBotonEnviar =(Button) findViewById(R.id.elBotonEnviar);
-        this.elTexto = (TextView) findViewById(R.id.elTexto);
+        this.elTextoMinor = (TextView) findViewById(R.id.elTextoMinor);
+        this.elTextoMajor =(TextView) findViewById(R.id.elTextoMajor);
 
         this.temperaturaInput = (EditText) findViewById(R.id.temperaturaInput);
         this.co2Input = (EditText) findViewById(R.id.co2Input);
@@ -478,7 +462,7 @@ public class MainActivity extends AppCompatActivity {
     public void boton_enviar_pulsado_client (View quien) {
         Log.d("clienterestandroid", "boton_enviar_pulsado_client");
 
-        String urlDestino = "http://192.168.1.106:80/insertarmedicion.php";
+        String urlDestino = "http://192.168.1.106/insertarmedicion.php";
 
         // Crear un objeto JSONObject con los datos a enviar
         JSONObject postData = new JSONObject();
@@ -493,18 +477,27 @@ public class MainActivity extends AppCompatActivity {
         AndroidNetworking.post(urlDestino)
                 .addHeaders("Content-Type", "application/json; charset=utf-8")
                 .addJSONObjectBody(postData)
-                .setTag("test")
+                .setTag("post_data")
                 .setPriority(Priority.MEDIUM)
                 .build()
                 .getAsJSONArray(new JSONArrayRequestListener() {
                     @Override
                     public void onResponse(JSONArray response) {
                         // Manejar la respuesta del servidor
+                        if (response != null && response.length() > 0) {
+                            Log.d(ETIQUETA_LOG, "Datos guardados correctamente ");
+
+                        } else {
+                            Log.d(ETIQUETA_LOG, "Datos guardados incorrectamente ");
+                        }
                     }
 
                     @Override
                     public void onError(ANError error) {
                         // Manejar errores
+                        if (error!=null ){
+                            Log.d(ETIQUETA_LOG, "Mensaje de error: "+error.getMessage().toString());
+                        }
                     }
                 });
     }

@@ -12,14 +12,14 @@ public class ServicioEscuharBeacons extends IntentService {
     // ---------------------------------------------------------------------------------------------
     private static final String ETIQUETA_LOG = ">>>>";
 
-    private long tiempoDeEspera = 10000;
+    private long tiempoDeEspera = 1000;
 
     private boolean seguir = true;
 
     // ---------------------------------------------------------------------------------------------
     // ---------------------------------------------------------------------------------------------
     public ServicioEscuharBeacons(  ) {
-        super("HelloIntentService");
+        super("ServicioEscucharBeacons");
 
         Log.d(ETIQUETA_LOG, " ServicioEscucharBeacons.constructor: termina");
     }
