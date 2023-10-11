@@ -60,13 +60,11 @@ public class MainActivity extends AppCompatActivity {
 
     // _______________________________________________________________
     // Diseño: buscarTodosLosDispositivosBTLE()
-    // Descripción:
+    // Descripción:Empieza el scanner y se establece un callback para
+    // diferentes caso, si obtiene resultado, lo muestra en logcat
     // _______________________________________________________________
     @SuppressLint("MissingPermission")
     private void buscarTodosLosDispositivosBTLE() {
-        Log.d(ETIQUETA_LOG, " buscarTodosLosDispositivosBTL(): empieza ");
-        Log.d(ETIQUETA_LOG, " buscarTodosLosDispositivosBTL(): instalamos scan callback ");
-
         this.callbackDelEscaneo = new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult resultado) {
@@ -89,13 +87,13 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         Log.d(ETIQUETA_LOG, " buscarTodosLosDispositivosBTL(): empezamos a escanear ");
-
         this.elEscanner.startScan(this.callbackDelEscaneo);
-
     }
+
     // _______________________________________________________________
-    // Diseño: mostrarInformacionDispositivosBTLE()
-    // Descripción:
+    // Diseño: ScanResult ---> mostrarInformacionDispositivosBTLE()
+    // Descripción: Recibe un objeto de tipo ScanResult y muestra datos
+    // en el logcat
     // _______________________________________________________________
     @SuppressLint("MissingPermission")
     private void mostrarInformacionDispositivoBTLE(ScanResult resultado) {
@@ -140,12 +138,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // _______________________________________________________________
-    // Diseño: buscarEsteDispositivoBTLE()
-    // Descripción:
+    // Diseño: String --->buscarEsteDispositivoBTLE()
+    // Descripción: Recibe el nombre de dispositivo que quiere buscar
+    // y se filtra en los resultados
     // _______________________________________________________________
     @SuppressLint("MissingPermission")
     private void buscarEsteDispositivoBTLE(final String dispositivoBuscado) {
-        Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): instalamos scan callback ");
 
         if(this.elEscanner==null){
             Log.d(ETIQUETA_LOG, "buscarEsteDispositivoBTLE: No existe el scanner");
@@ -158,7 +156,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): onScanResult() ");
 
                 mostrarInformacionDispositivoBTLE(resultado);
-                Log.d(ETIQUETA_LOG, "Device found: " + resultado);
             }
             @Override
             public void onBatchScanResults(List<ScanResult> results) {
@@ -174,23 +171,25 @@ public class MainActivity extends AppCompatActivity {
         };
 
         Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): empezamos a escanear buscando: " + dispositivoBuscado);
+
+        //Crea un scanfilter y añade el nombre de dispositivo
         ScanFilter scanFilter = new ScanFilter.Builder()
                 .setDeviceName(dispositivoBuscado)
                 .build();
 
+        //Configurar el setting del scanner
         ScanSettings scanSettings = new ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .build();
 
-
-        // Start scanning with the specified filters and settings
+        //Empieza el escaneo con el filtro
         this.elEscanner.startScan(Collections.singletonList(scanFilter), scanSettings, this.callbackDelEscaneo);
 
     }
 
     // _______________________________________________________________
     // Diseño: detenerBusquedaDispositivosBTLE()
-    // Descripción:
+    // Descripción: Parar la busqueda
     // _______________________________________________________________
     @SuppressLint("MissingPermission")
     private void detenerBusquedaDispositivosBTLE() {
@@ -206,10 +205,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // --------------------------BOTON--------------------------------
-    // _______________________________________________________________
-    // Diseño: botonBuscarDispositivosBTLEPulsado()
-    // Descripción:
-    // _______________________________________________________________
+
     public void botonBuscarDispositivosBTLEPulsado(View v) {
 
         Log.d(ETIQUETA_LOG, " boton arrancar servicio Pulsado" );
@@ -241,9 +237,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // _______________________________________________________________
-    // Diseño: botonBuscarNuestroDispositivosBTLEPulsado()
-    // Descripción:
-    // _______________________________________________________________
     public void botonBuscarNuestroDispositivoBTLEPulsado(View v) {
         Log.d(ETIQUETA_LOG, " boton nuestro dispositivo BTLE Pulsado");
         //this.buscarEsteDispositivoBTLE( Utilidades.stringToUUID( "EPSG-GTI-PROY-3A" ) );
@@ -270,16 +263,12 @@ public class MainActivity extends AppCompatActivity {
         this.elIntentDelServicio.putExtra("tiempoDeEspera", (long) 5000);
         startService( this.elIntentDelServicio );
 
-
         Log.d(ETIQUETA_LOG, " iniciamos la buscaqueda epsg-gti" );
         this.buscarEsteDispositivoBTLE( "GTI-3A_CHEN" );
         //this.buscarEsteDispositivoBTLE("fistro");
 
     }
 
-    // _______________________________________________________________
-    // Diseño: botonDetenerBusquedaDispositivosBTLEPulsado()
-    // Descripción:
     // _______________________________________________________________
     public void botonDetenerBusquedaDispositivosBTLEPulsado(View v) {
 
@@ -305,13 +294,12 @@ public class MainActivity extends AppCompatActivity {
 
             return;
         }
-
         this.detenerBusquedaDispositivosBTLE();
     }
 
     // _______________________________________________________________
     // Diseño: inicializarBlueTooth()
-    // Descripción:
+    // Descripción: Pedir los permisos de BLUETOOTH y lo enciende
     // _______________________________________________________________
     @SuppressLint("MissingPermission")
     private void inicializarBlueTooth() {
@@ -352,10 +340,10 @@ public class MainActivity extends AppCompatActivity {
         }
         else {
             Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): parece que YA tengo los permisos necesarios !!!!");
-
         }
     }
 
+    // _______________________________________________________________
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -390,9 +378,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // _______________________________________________________________
-    // Diseño: onRequestPermissionResult()
-    // Descripción:
-    // _______________________________________________________________
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
         super.onRequestPermissionsResult( requestCode, permissions, grantResults);
@@ -410,15 +395,13 @@ public class MainActivity extends AppCompatActivity {
                 }  else {
 
                     Log.d(ETIQUETA_LOG, " onRequestPermissionResult(): Socorro: permisos NO concedidos  !!!!");
-
-
                 }
                 return;
         }
-        // Other 'case' lines to check for other
-        // permissions this app might request.
+
     }
 
+    // _______________________________________________________________
     public void boton_enviar_pulsado (View quien) {
         Log.d("clienterestandroid", "boton_enviar_pulsado");
 
@@ -452,6 +435,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
+
+    // _______________________________________________________________
     public void boton_enviar_pulsado_client (View quien) {
         Log.d("clienterestandroid", "boton_enviar_pulsado_client");
 
