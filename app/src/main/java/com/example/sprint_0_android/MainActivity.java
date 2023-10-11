@@ -3,7 +3,9 @@ package com.example.sprint_0_android;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.ScanSettings;
+import android.content.Context;
 import android.os.Bundle;
 
 import android.Manifest;
@@ -14,6 +16,7 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.content.pm.PackageManager;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.View;
 
@@ -21,7 +24,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import android.content.Intent;
 import android.widget.Button;
@@ -140,19 +145,20 @@ public class MainActivity extends AppCompatActivity {
     // _______________________________________________________________
     @SuppressLint("MissingPermission")
     private void buscarEsteDispositivoBTLE(final String dispositivoBuscado) {
-        Log.d(ETIQUETA_LOG, " buscarEsteDispositivoBTLE(): empieza ");
         Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): instalamos scan callback ");
 
-
-        // super.onScanResult(ScanSettings.SCAN_MODE_LOW_LATENCY, result); para ahorro de energía
+        if(this.elEscanner==null){
+            Log.d(ETIQUETA_LOG, "buscarEsteDispositivoBTLE: No existe el scanner");
+            return;
+        }
         this.callbackDelEscaneo = new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult resultado) {
                 super.onScanResult(callbackType, resultado);
                 Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): onScanResult() ");
 
-                //mostrarInformacionDispositivoBTLE(resultado);
-                Log.d(ETIQUETA_LOG, "Device found: " + resultado.getDevice().getName());
+                mostrarInformacionDispositivoBTLE(resultado);
+                Log.d(ETIQUETA_LOG, "Device found: " + resultado);
             }
             @Override
             public void onBatchScanResults(List<ScanResult> results) {
@@ -168,25 +174,18 @@ public class MainActivity extends AppCompatActivity {
         };
 
         Log.d(ETIQUETA_LOG, "  buscarEsteDispositivoBTLE(): empezamos a escanear buscando: " + dispositivoBuscado);
-
         ScanFilter scanFilter = new ScanFilter.Builder()
                 .setDeviceName(dispositivoBuscado)
                 .build();
 
-        // Create a list of ScanFilters (you can add multiple filters if needed)
-        List<ScanFilter> filters = new ArrayList<>();
-        filters.add(scanFilter);
-        Log.d(ETIQUETA_LOG, filters.toString());
-
-        // Specify the scan settings (e.g., low latency)
         ScanSettings scanSettings = new ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .build();
 
-        Log.d(ETIQUETA_LOG, "buscarEsteDispositivoBTLE: Antes ed startscan with filter");
+
         // Start scanning with the specified filters and settings
-        this.elEscanner.startScan(filters, scanSettings, this.callbackDelEscaneo);
-        Log.d(ETIQUETA_LOG, "buscarEsteDispositivoBTLE: Despues ed startscan with filter");
+        this.elEscanner.startScan(Collections.singletonList(scanFilter), scanSettings, this.callbackDelEscaneo);
+
     }
 
     // _______________________________________________________________
@@ -249,12 +248,11 @@ public class MainActivity extends AppCompatActivity {
         Log.d(ETIQUETA_LOG, " boton nuestro dispositivo BTLE Pulsado");
         //this.buscarEsteDispositivoBTLE( Utilidades.stringToUUID( "EPSG-GTI-PROY-3A" ) );
 
-        Log.d(ETIQUETA_LOG, " boton arrancar servicio Pulsado" );
-
         if ( this.elIntentDelServicio != null ) {
             // ya estaba arrancado
             return;
         }
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -272,8 +270,10 @@ public class MainActivity extends AppCompatActivity {
         this.elIntentDelServicio.putExtra("tiempoDeEspera", (long) 5000);
         startService( this.elIntentDelServicio );
 
-        //this.buscarEsteDispositivoBTLE( "EPSG-GTI-PROY-3A" );
-        this.buscarEsteDispositivoBTLE("fistro");
+
+        Log.d(ETIQUETA_LOG, " iniciamos la buscaqueda epsg-gti" );
+        this.buscarEsteDispositivoBTLE( "GTI-3A_CHEN" );
+        //this.buscarEsteDispositivoBTLE("fistro");
 
     }
 
@@ -316,31 +316,24 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("MissingPermission")
     private void inicializarBlueTooth() {
         Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): obtenemos adaptador BT ");
-
-        //BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        //BluetoothAdapter bta = bluetoothManager.getAdapter();
-
-        BluetoothAdapter bta = BluetoothAdapter.getDefaultAdapter();
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 
         Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): habilitamos adaptador BT ");
-
+        BluetoothAdapter bta = bluetoothManager.getAdapter();
         bta.enable();
 
         Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): habilitado =  " + bta.isEnabled() );
-
         Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): estado =  " + bta.getState() );
 
         Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): obtenemos escaner btle ");
-
         this.elEscanner = bta.getBluetoothLeScanner();
 
         if ( this.elEscanner == null ) {
             Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): Socorro: NO hemos obtenido escaner btle  !!!!");
-
+            return;
         }
 
         Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): voy a perdir permisos (si no los tuviera) !!!!");
-
         if (
                 ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED
