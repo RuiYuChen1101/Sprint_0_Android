@@ -411,7 +411,7 @@ public class MainActivity extends AppCompatActivity {
     public void boton_prueba_pulsado (View quien) {
         Log.d("clienterestandroid", "boton_prueba_pulsado");
 
-        String urlComprobarComproDestino = "http://192.168.1.106/Sprint_0_Web/logica/comprobarenviomedicion.php";
+        String urlComprobarComproDestino = "http://192.168.1.106/comprobarenviomedicion.php";
 
         AndroidNetworking.get(urlComprobarComproDestino)
                 .addQueryParameter("temperatura",  temperaturaInput.getText().toString())
