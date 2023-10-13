@@ -39,6 +39,7 @@ import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.common.Priority;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONArrayRequestListener;
+import com.androidnetworking.interfaces.JSONObjectRequestListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -54,9 +55,12 @@ public class MainActivity extends AppCompatActivity {
     private Intent elIntentDelServicio = null;
     private TextView elTextoMinor;
     private TextView elTextoMajor;
+    private TextView salidaTexto;
     private EditText temperaturaInput;
     private EditText co2Input;
     private Button elBotonEnviar;
+
+    private Button elBotonPrueba;
 
     // _______________________________________________________________
     // Diseño: buscarTodosLosDispositivosBTLE()
@@ -350,8 +354,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         this.elBotonEnviar =(Button) findViewById(R.id.elBotonEnviar);
+        this.elBotonPrueba =(Button) findViewById(R.id.elBotonPrueba);
         this.elTextoMinor = (TextView) findViewById(R.id.elTextoMinor);
         this.elTextoMajor =(TextView) findViewById(R.id.elTextoMajor);
+        this.salidaTexto = (TextView) findViewById(R.id.salidaTexto);
 
         this.temperaturaInput = (EditText) findViewById(R.id.temperaturaInput);
         this.co2Input = (EditText) findViewById(R.id.co2Input);
@@ -402,36 +408,40 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // _______________________________________________________________
-    public void boton_enviar_pulsado (View quien) {
-        Log.d("clienterestandroid", "boton_enviar_pulsado");
+    public void boton_prueba_pulsado (View quien) {
+        Log.d("clienterestandroid", "boton_prueba_pulsado");
 
-        String urlDestino = "http://192.168.1.106:80/insertarmedicion.php";
+        String urlComprobarComproDestino = "http://192.168.1.106/Sprint_0_Web/logica/comprobarenviomedicion.php";
 
-        // Crear un objeto JSONObject con los datos a enviar
-        JSONObject postData = new JSONObject();
-        try {
-            postData.put("id", "");
-            postData.put("temperatura", "111");
-            postData.put("co2", "999");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        AndroidNetworking.post(urlDestino)
-                .addHeaders("Content-Type", "application/json; charset=utf-8")
-                .addJSONObjectBody(postData)
-                .setTag("test")
+        AndroidNetworking.get(urlComprobarComproDestino)
+                .addQueryParameter("temperatura",  temperaturaInput.getText().toString())
+                .addQueryParameter("co2", co2Input.getText().toString())
                 .setPriority(Priority.MEDIUM)
                 .build()
-                .getAsJSONArray(new JSONArrayRequestListener() {
+                .getAsJSONObject(new JSONObjectRequestListener() {
                     @Override
-                    public void onResponse(JSONArray response) {
-                        // Manejar la respuesta del servidor
-                    }
+                    public void onResponse(JSONObject response) {
+                        try {
+                            String success = response.getString("success");
+                            String message = response.getString("message");
 
+                            if ("success".equals(success)) {
+                                salidaTexto.setText(message);
+                            } else {
+                                // Aquí puedes manejar la respuesta que no es un éxito
+                                salidaTexto.setText(message);
+                            }
+                        } catch (JSONException e) {
+                            // Manejar cualquier error que ocurra al analizar la respuesta JSON
+                            e.printStackTrace();
+                        }
+                    }
                     @Override
                     public void onError(ANError error) {
                         // Manejar errores
+                        if (error != null) {
+                            Log.d(ETIQUETA_LOG, "Mensaje de error: " + error.getMessage());
+                        }
                     }
                 });
     }
@@ -440,43 +450,60 @@ public class MainActivity extends AppCompatActivity {
     public void boton_enviar_pulsado_client (View quien) {
         Log.d("clienterestandroid", "boton_enviar_pulsado_client");
 
-        String urlDestino = "http://192.168.1.106/insertarmedicion.php";
+            String urlDestino = "http://192.168.1.106/insertarmedicion.php";
+            JSONObject postData = new JSONObject();
 
-        // Crear un objeto JSONObject con los datos a enviar
-        JSONObject postData = new JSONObject();
-        try {
-            postData.put("id", "");
-            postData.put("temperatura", temperaturaInput.getText().toString());
-            postData.put("co2", co2Input.getText().toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+            try {
+                postData.put("id", "");
+                postData.put("temperatura", temperaturaInput.getText().toString());
+                postData.put("co2", co2Input.getText().toString());
 
-        AndroidNetworking.post(urlDestino)
-                .addHeaders("Content-Type", "application/json; charset=utf-8")
-                .addJSONObjectBody(postData)
-                .setTag("post_data")
-                .setPriority(Priority.MEDIUM)
-                .build()
-                .getAsJSONArray(new JSONArrayRequestListener() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        // Manejar la respuesta del servidor
-                        if (response != null && response.length() > 0) {
-                            Log.d(ETIQUETA_LOG, "Datos guardados correctamente ");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
-                        } else {
-                            Log.d(ETIQUETA_LOG, "Datos guardados incorrectamente ");
+            AndroidNetworking.post(urlDestino)
+                    .addHeaders("Content-Type", "application/json; charset=utf-8")
+                    .addJSONObjectBody(postData)
+                    .setTag("post_data")
+                    .setPriority(Priority.MEDIUM)
+                    .build()
+                    .getAsJSONObject(new JSONObjectRequestListener() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+
+                            if (response != null && response.length() > 0) {
+                                try {
+                                    String success = response.getString("success");
+                                    String message = response.getString("message");
+
+                                    if ("1".equals(success)) {
+                                        Log.d(ETIQUETA_LOG, "Datos guardados correctamente: " + message);
+                                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+
+                                    } else {
+                                        Log.d(ETIQUETA_LOG, "Datos guardados incorrectamente: " + message);
+                                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                            } else {
+                                Log.d(ETIQUETA_LOG, "Datos guardados incorrectamente ");
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onError(ANError error) {
-                        // Manejar errores
-                        if (error!=null ){
-                            Log.d(ETIQUETA_LOG, "Mensaje de error: "+error.getMessage().toString());
+                        @Override
+                        public void onError(ANError error) {
+
+                            if (error != null) {
+                                Log.d(ETIQUETA_LOG, "Mensaje de error: " + error.getMessage().toString());
+                            }
                         }
-                    }
-                });
+                    });
+
+
     }
 }

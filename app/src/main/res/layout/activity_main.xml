@@ -56,11 +56,24 @@
         android:hint="co2"
         android:inputType="text" />
 
+    <TextView
+        android:id="@+id/salidaTexto"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:text="Salida:" />
+
     <Button
         android:id="@+id/elBotonEnviar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="boton_enviar_pulsado_client"
         android:text="Guardar Mediciones" />
+
+    <Button
+        android:id="@+id/elBotonPrueba"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="boton_prueba_pulsado"
+        android:text="Prueba" />
 
 </android.widget.LinearLayout>
