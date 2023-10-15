@@ -6,6 +6,8 @@ import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 
 import android.Manifest;
@@ -91,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         Log.d(ETIQUETA_LOG, " buscarTodosLosDispositivosBTL(): empezamos a escanear ");
+        //Empieza el escanner a escanear, si obtiene resultado, llama el callback del escaneo
         this.elEscanner.startScan(this.callbackDelEscaneo);
     }
 
@@ -198,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("MissingPermission")
     private void detenerBusquedaDispositivosBTLE() {
 
+        //Parar el escanner y anular el callback del escaneo
         if (this.callbackDelEscaneo == null) {
             return;
         }else {
@@ -308,9 +312,11 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("MissingPermission")
     private void inicializarBlueTooth() {
         Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): obtenemos adaptador BT ");
+        //Coger el bluetooth manager del servicio BLUETOOTH_SERVICE
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 
         Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): habilitamos adaptador BT ");
+        //Coger el adapter desde el manager del bluetooth y lo enciende
         BluetoothAdapter bta = bluetoothManager.getAdapter();
         bta.enable();
 
@@ -326,6 +332,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Log.d(ETIQUETA_LOG, " inicializarBlueTooth(): voy a perdir permisos (si no los tuviera) !!!!");
+        //Check si tengo todos los permisos necesarios, si no los tengo, pido todas las permisiones necesarias
         if (
                 ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED
@@ -411,20 +418,25 @@ public class MainActivity extends AppCompatActivity {
     public void boton_prueba_pulsado (View quien) {
         Log.d("clienterestandroid", "boton_prueba_pulsado");
 
+        //Url de destino
         String urlComprobarComproDestino = "http://192.168.1.106/comprobarenviomedicion.php";
 
+        //Añado parametros y los envio al enlace correspondiente
         AndroidNetworking.get(urlComprobarComproDestino)
                 .addQueryParameter("temperatura",  temperaturaInput.getText().toString())
                 .addQueryParameter("co2", co2Input.getText().toString())
                 .setPriority(Priority.MEDIUM)
                 .build()
                 .getAsJSONObject(new JSONObjectRequestListener() {
+                    //El servidor me ha respondido con un Json Object
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
+                            //Leo el mensaje que hay en dentro del response
                             String success = response.getString("success");
                             String message = response.getString("message");
 
+                            //Pongo los mensajes en la salida de texto
                             if ("success".equals(success)) {
                                 salidaTexto.setText(message);
                             } else {
@@ -432,13 +444,13 @@ public class MainActivity extends AppCompatActivity {
                                 salidaTexto.setText(message);
                             }
                         } catch (JSONException e) {
-                            // Manejar cualquier error que ocurra al analizar la respuesta JSON
+                            // Manejo cualquier error que ocurra al analizar la respuesta JSON
                             e.printStackTrace();
                         }
                     }
                     @Override
                     public void onError(ANError error) {
-                        // Manejar errores
+                        // Tengo error, lo imprimo en logcat
                         if (error != null) {
                             Log.d(ETIQUETA_LOG, "Mensaje de error: " + error.getMessage());
                         }
@@ -450,18 +462,26 @@ public class MainActivity extends AppCompatActivity {
     public void boton_enviar_pulsado_client (View quien) {
         Log.d("clienterestandroid", "boton_enviar_pulsado_client");
 
-            String urlDestino = "http://192.168.1.106/insertarmedicion.php";
-            JSONObject postData = new JSONObject();
+            LocationManager locManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            @SuppressLint("MissingPermission") Location loc = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
+            //Url de destino
+            String urlDestino = "http://192.168.1.106/insertarmedicion.php";
+
+            //Creo un objeto JSON e introducir valores
+            JSONObject postData = new JSONObject();
             try {
                 postData.put("id", "");
                 postData.put("temperatura", temperaturaInput.getText().toString());
                 postData.put("co2", co2Input.getText().toString());
+                postData.put("latitud",String.valueOf(loc.getLongitude()));
+                postData.put("longitud", String.valueOf(loc.getLongitude()));
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
 
+            //Envío el objeto JSON a tal url de destino
             AndroidNetworking.post(urlDestino)
                     .addHeaders("Content-Type", "application/json; charset=utf-8")
                     .addJSONObjectBody(postData)
@@ -469,19 +489,24 @@ public class MainActivity extends AppCompatActivity {
                     .setPriority(Priority.MEDIUM)
                     .build()
                     .getAsJSONObject(new JSONObjectRequestListener() {
+                        //El servidor me ha respondido con un Json Object
                         @Override
                         public void onResponse(JSONObject response) {
 
                             if (response != null && response.length() > 0) {
                                 try {
+                                    //Leo el mensaje que hay en dentro del response
                                     String success = response.getString("success");
                                     String message = response.getString("message");
 
+                                    //Si success me responde con un 1, un toast con el message
                                     if ("1".equals(success)) {
                                         Log.d(ETIQUETA_LOG, "Datos guardados correctamente: " + message);
                                         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
 
-                                    } else {
+                                    }
+                                    //Si success me responde con un 0, un toast con el message
+                                    else {
                                         Log.d(ETIQUETA_LOG, "Datos guardados incorrectamente: " + message);
                                         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
 
