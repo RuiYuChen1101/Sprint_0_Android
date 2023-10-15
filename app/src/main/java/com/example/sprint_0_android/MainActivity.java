@@ -419,7 +419,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("clienterestandroid", "boton_prueba_pulsado");
 
         //Url de destino
-        String urlComprobarComproDestino = "http://192.168.1.106/comprobarenviomedicion.php";
+        String urlComprobarComproDestino = "http://192.168.1.106/Sprint_0_Web/logica/comprobarenviomedicion.php";
 
         //Añado parametros y los envio al enlace correspondiente
         AndroidNetworking.get(urlComprobarComproDestino)
@@ -466,7 +466,7 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("MissingPermission") Location loc = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
             //Url de destino
-            String urlDestino = "http://192.168.1.106/insertarmedicion.php";
+            String urlDestino = "http://192.168.1.106/Sprint_0_Web/logica/insertarmedicion.php";
 
             //Creo un objeto JSON e introducir valores
             JSONObject postData = new JSONObject();
